@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+<import rel="import" href="https://gateway-a.watsonplatform.net/visual-recognition/api">
+
+  <script src="https://www.gstatic.com/firebasejs/4.5.0/firebase.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/4.5.0/firebase-firestore.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script>
+var API_URL = "https://gateway-a.watsonplatform.net/visual-recognition/api";
+var API_KEY= "b27d107a0627548b3c4b311ccb17d319aee7acdb"
+
+  $(document).ready(function(){
+    var config = {
+      apiKey: "AIzaSyD_iVwESDVQatTB2tzvOdqzAn1XyYdFf2g",
+      authDomain: "healthyp-de5b7.firebaseapp.com",
+      databaseURL: "https://healthyp-de5b7.firebaseio.com",
+      projectId: "healthyp-de5b7",
+      storageBucket: "healthyp-de5b7.appspot.com",
+      messagingSenderId: "231324377211"
+    };
+    firebase.initializeApp(config);
+/**
+var loc=$(location).attr('href');
+var imgURI=loc.substring(loc.indexOf('temporary.html?data=')+20);
+$('.bg').attr('src',imgURI);
+$('.bg').css({'display':'block'});
+**/
+  });
+  </script>
+
+  <script type="text/javascript" charset="utf-8">
+        var watson = require('watson-developer-cloud');
+      var fs = require('fs');
+
+      var visual_recognition = watson.visual_recognition({
+       api_key: 'b27d107a0627548b3c4b311ccb17d319aee7acdb',
+       version: 'v3',
+       version_date: '2016-05-20'
+      });
+
+      var params = {
+       name: "food",
+       avocado_positive_examples: fs.createReadStream('./')
+      };
+
+      visual_recognition.classify(params, function(err, res) {
+       if (err)
+         console.log(err);
+       else
+         console.log(JSON.stringify(res, null, 2));
+      });
+  </script>
+<style>
+body, html {
+    height: 100%;
+    margin: 0;
+}
+
+.bg {
+
+    /* Full height */
+    width: 100%;
+
+    /* Center and scale the image nicely */
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+</style>
+</head>
+<body>
+  <img class="bg" style="display:block;" src="" />
+  <div id="status"></div>
+</body>
+</html>

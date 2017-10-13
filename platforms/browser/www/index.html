@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<!--
+    Copyright (c) 2012-2016 Adobe Systems Incorporated. All rights reserved.
+
+    Licensed to the Apache Software Foundation (ASF) under one
+    or more contributor license agreements.  See the NOTICE file
+    distributed with this work for additional information
+    regarding copyright ownership.  The ASF licenses this file
+    to you under the Apache License, Version 2.0 (the
+    "License"); you may not use this file except in compliance
+    with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing,
+    software distributed under the License is distributed on an
+    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+     KIND, either express or implied.  See the License for the
+    specific language governing permissions and limitations
+    under the License.
+-->
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width" />
+    <!-- This is a wide open CSP declaration. To lock this down for production, see below. -->
+    <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline'; style-src 'self' 'unsafe-inline'; media-src *" />
+    <!-- Good default declaration:
+    * gap: is required only on iOS (when using UIWebView) and is needed for JS->native communication
+    * https://ssl.gstatic.com is required only on Android and is needed for TalkBack to function properly
+    * Disables use of eval() and inline scripts in order to mitigate risk of XSS vulnerabilities. To change this:
+        * Enable inline JS: add 'unsafe-inline' to default-src
+        * Enable eval(): add 'unsafe-eval' to default-src
+    * Create your own at http://cspisawesome.com
+    -->
+    <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: 'unsafe-inline' https://ssl.gstatic.com; style-src 'self' 'unsafe-inline'; media-src *" /> -->
+
+    <link rel="stylesheet" type="text/css" href="css/index.css" />
+    <script src="https://www.gstatic.com/firebasejs/4.5.0/firebase.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/4.5.0/firebase-firestore.js"></script>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+    <script>
+    $(document).ready(function(){
+      var config = {
+        apiKey: "AIzaSyD_iVwESDVQatTB2tzvOdqzAn1XyYdFf2g",
+        authDomain: "healthyp-de5b7.firebaseapp.com",
+        databaseURL: "https://healthyp-de5b7.firebaseio.com",
+        projectId: "healthyp-de5b7",
+        storageBucket: "healthyp-de5b7.appspot.com",
+        messagingSenderId: "231324377211"
+      };
+      firebase.initializeApp(config);
+    // Initialize Cloud Firestore through Firebase
+
+      var cw = $('.container').width();
+      $('.container').css({'height':cw+'px'});
+      modifyPercentage('calories');
+      drawSector();
+    });
+
+    function showHidden(){
+      $('.hidden').css({'display':'block'});
+    };
+
+    function submitFood(){
+      var food=$('#food_enter').val();
+      updateCurrFood(food);
+    }
+
+    function updateCurrFood(food){
+      //update goal of user
+      var db = firebase.firestore();
+    //  if (food in db.collection("food_types").keys()){
+        var docRef = db.collection("food_types").doc(food);
+    //  }
+    /*  else{
+        alert("Food item not in database.");
+      }*/
+      // Set the "capital" field of the city 'DC'
+
+      docRef.get().then(function(doc) {
+        if (doc.exists) {
+            information=doc.data();
+            var cal=information['calories'];
+            var fat=information['fat'];
+            var fib=information['fiber'];
+            var pro=information['protein'];
+            var sod=information['sodium'];
+            var sugar=information['sugar'];
+
+            var userRef = db.collection("users").doc("global");
+            userRef.get().then(function(doc) {
+              if (doc.exists) {
+                  information=doc.data();
+                  var c_cal=information['cur_calories'];
+                  var c_fat=information['cur_fat'];
+                  var c_fib=information['cur_fiber'];
+                  var c_pro=information['cur_protein'];
+                  var c_sod=information['cur_sodium'];
+                  var c_sugar=information['cur_sugar'];
+
+                  return userRef.update({
+                     cur_calories: cal+c_cal,
+                     cur_fat: fat+c_fat,
+                     cur_fiber: fib+c_fib,
+                     cur_protein: pro+c_pro,
+                     cur_sodium: sod+c_sod,
+                     cur_sugar: sugar+c_sugar
+
+                  })
+                  .then(function() {
+                     console.log("Document successfully updated!");
+                       window.location.href = 'index.html';
+                  })
+                  .catch(function(error) {
+                     // The document probably doesn't exist.
+                     console.error("Error updating document: ", error);
+                  });
+              } else {
+                  console.log("No such document!");
+                  alert("Error: Food item does not exist in database.");
+              }
+            }).catch(function(error) {
+              console.log("Error getting document:", error);
+            });
+        } else {
+            console.log("No such document!");
+            alert("Error: Food item does not exist in database.");
+        }
+      }).catch(function(error) {
+        console.log("Error getting document:", error);
+      });
+
+
+    };
+
+      function drawSector(){
+    var activeBorder = $("#activeBorder");
+    var prec = activeBorder.children().children().text();
+    if (prec > 100)
+        prec = 100;
+    var deg = prec*3.6;
+    if (deg <= 180){
+        activeBorder.css('background-image','linear-gradient(' + (90+deg) + 'deg, transparent 50%, #A2ECFB 50%),linear-gradient(90deg, #A2ECFB 50%, transparent 50%)');
+    }
+    else{
+        activeBorder.css('background-image','linear-gradient(' + (deg-90) + 'deg, transparent 50%, #39B4CC 50%),linear-gradient(90deg, #A2ECFB 50%, transparent 50%)');
+    }
+
+    var startDeg = $("#startDeg").attr("class");
+    activeBorder.css('transform','rotate(' + startDeg + 'deg)');
+    $("#circle").css('transform','rotate(' + (-startDeg) + 'deg)');
+};
+
+function modifyPercentage(category) {
+  var db = firebase.firestore();
+  var docRef = db.collection("users").doc("global");
+
+  docRef.get().then(function(doc) {
+    if (doc.exists) {
+        information=doc.data();
+        value=Math.floor(information['cur_'+category]/information['goal_'+category]*100);
+        $('.prec').html(value);
+        drawSector();
+    } else {
+        console.log("No such document!");
+    }
+  }).catch(function(error) {
+    console.log("Error getting document:", error);
+  });
+
+};
+    </script>
+    <script type="text/javascript" charset="utf-8">
+
+    var pictureSource;   // picture source
+    var destinationType; // sets the format of returned value
+
+    // Wait for device API libraries to load
+    //
+    document.addEventListener("deviceready",onDeviceReady,false);
+    // device APIs are available
+    //
+    function onDeviceReady() {
+        pictureSource=navigator.camera.PictureSourceType;
+        destinationType=navigator.camera.DestinationType;
+    }
+
+
+    // Called when a photo is successfully retrieved
+    //
+    function onPhotoURISuccess(imageURI) {
+      // Uncomment to view the image file URI
+      // console.log(imageURI);
+
+      window.location.replace("temporary.html?data="+imageURI);
+    }
+
+    // A button will call this function
+    //
+    function capturePhoto() {
+      // Take picture using device camera and retrieve image as base64-encoded string
+      navigator.camera.getPicture(onPhotoURISuccess, onFail, { quality: 50,
+        destinationType: destinationType.FILE_URL });
+    }
+
+    function getPhoto(source) {
+      // Retrieve image file location from specified source
+      navigator.camera.getPicture(onPhotoURISuccess, onFail, { quality: 50,
+        destinationType: destinationType.FILE_URI,
+        sourceType: source });
+    }
+
+    // Called if something bad happens.
+    //
+    function onFail(message) {
+      alert('Failed because: ' + message);
+    }
+
+    </script>
+    <title>Shape</title>
+</head>
+
+<body>
+    <div id="header">
+    <a href="menu.html"><img class="menu" src="img/settings-4-64.png" /></a>
+  </div>
+    <div class = "main">
+      <h1>My Goals</h1>
+      <ul>
+        <li><button class="astext" onclick="modifyPercentage('calories')">Calories</button></li>
+        <li><button class="astext" onclick="modifyPercentage('fat')">Fat</button></li>
+        <li><button class="astext" onclick="modifyPercentage('fiber')">Fiber</button></li>
+        <li><button class="astext" onclick="modifyPercentage('protein')">Protein</button></li>
+        <li><button class="astext" onclick="modifyPercentage('sodium')">Sodium</button></li>
+        <li><button class="astext" onclick="modifyPercentage('sugar')">Sugar</button></li>
+      </ul>
+      <h1>My Progress</h1>
+
+
+      <div class="container">
+        <div id="activeBorder" class="active-border">
+          <div id="circle" class="circle">
+            <span class="prec">50</span>
+            <span id="startDeg" class="90"></span>
+          </div>
+        </div>
+      </div>
+      <button onclick="capturePhoto();" class="button">Take a Picture</button>
+      <button onclick="getPhoto(pictureSource.PHOTOLIBRARY);" class="button">Choose a Picture</button>
+      <button onclick="showHidden();" class="button">Enter Your Food</button>
+      <input type="text" name="food_enter" id="food_enter" class="hidden" placeholder="Food Item">
+      <button onclick="submitFood();" class="button hidden">Enter</button>
+    </div>
+  <script type="text/javascript" src="cordova.js"></script>
+    <script type="text/javascript" src="js/index.js"></script>
+    <script type="text/javascript">
+        app.initialize();
+    </script>
+
+
+</body>
+
+</html>
